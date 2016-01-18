@@ -16,7 +16,7 @@
 /*	left: calc(50% - 250px);
 	top: calc(50% - 250px);*/
 
-
+	background-color: #fff;
 	left: 50%;
 	top: 50%;
 	-webkit-transform: translate(-50%, -50%);

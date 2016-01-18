@@ -18,11 +18,21 @@ tempCanvas.width = width;
 tempCanvas.height = height;
 
 var particlesArray = [];
+var maskImage = new Image();
+maskImage.src = "../images/beer.jpg";
+
 
 // Threshold for alpha cut-off, smaller numbers increase the size of the blobs but also make them "fuzzier"
 // ~ 200 is a good value 
 var threshold = 200;
+var gravity = 9;
 
+
+var xCiderVel = 0.5;
+var yCiderVel = 2;
+
+var xCider = 0;
+var yCider = 0;
 // shim layer with setTimeout fallback - Paul Irish
 window.requestAnimFrame = (function(){
   return  window.requestAnimationFrame       ||
@@ -42,17 +52,18 @@ var Particle = function(x, y, vx, vy, radius) {
 	// this.colour = {red:Math.floor(255*Math.random()), green:Math.floor(255*Math.random()),blue:Math.floor(255*Math.random())};
 
 	// Sea blue blobs
-	this.colour = {red:56, green:164,blue:223};
+	// this.colour = {red:56, green:164,blue:223};
+	this.colour = {red:255, green:255,blue:255};
 };
 
 var createParticles = function(n) {
 	for (var i = 0; i < n; i++) {
 		// Define new x & y positions and velocities, radius
 		var xPos = Math.random() * canvas.width,
-			yPos = Math.random() * canvas.height,
-			xVel = Math.random() * 4 - 2,
-			yVel = Math.random() * 4 - 2,
-			rad = Math.floor(Math.random() * 30) + 30;
+			yPos = canvas.height,
+			xVel = Math.random() * 5 - 2.5,
+			yVel = Math.random() * -2,			
+			rad = 100;
 
 		// Create a particle with the above values and push to an array	
 		var p = new Particle(xPos, yPos, xVel, yVel, rad);
@@ -65,28 +76,38 @@ var render = function() {
 	// Clear temp canvas
 	tempCtx.clearRect(0,0,width,height);
 
+	// xCider += xCiderVel;
+	yCider += yCiderVel;
+
 	for (var i = 0; i < particlesArray.length; i++) {
 		var particle = particlesArray[i];
 
+		particle.velocity.y += gravity/60;
+
+		// Check if particles are going off-screen, if so then put on other side of canvas to give continuous movement
+		if (particle.position.x > width) {
+			particle.velocity.x *= -0.8;
+		}
+		if (particle.position.x < 0) {
+			particle.velocity.x *= -0.8;
+		}
+		if (particle.position.y > height) {
+			particle.velocity.y *= -0.8;
+		}
+		if (particle.position.y < 0) {
+			particle.velocity.y *= -0.8;
+		}
+		
+		// Moving cider image		
+		if (yCider >= 50 || yCider < -50) {
+			
+			yCiderVel -= 1/60;
+		}
 		// Update positions based on velocity
 		particle.position.x += particle.velocity.x;
 		particle.position.y += particle.velocity.y;
-
-		// Check if particles are going off-screen, if so then put on other side of canvas to give continuous movement
-		if (particle.position.x > width + particle.radius) {
-			particle.position.x = 0 - particle.radius;
-		}
-		if (particle.position.x < 0 - particle.radius) {
-			particle.position.x = width + particle.radius;
-		}
-		if (particle.position.y > height + particle.radius) {
-			particle.position.y = 0 - particle.radius;
-		}
-		if (particle.position.y < 0 - particle.radius) {
-			particle.position.y = height + particle.radius;
-		}
-
-
+	
+		tempCtx.globalCompositeOperation = "source-over";
 		// Update colour positions on temp canvas
 		tempCtx.beginPath();
 		var gradient = tempCtx.createRadialGradient(particle.position.x, particle.position.y, 0, particle.position.x, particle.position.y, particle.radius);
@@ -95,6 +116,11 @@ var render = function() {
 		tempCtx.fillStyle = gradient;
 		tempCtx.arc(particle.position.x, particle.position.y, particle.radius, 0, 2* Math.PI);
 		tempCtx.fill();
+
+		//Draw cider
+		tempCtx.globalCompositeOperation = "source-in";
+		tempCtx.drawImage(maskImage,xCider,yCider, canvas.width, canvas.height);
+
 	}
 	// Send to function that takes pixel data and implements alpha cut-off - then draws to the main canvas
 	metaballDraw();
@@ -110,7 +136,7 @@ var metaballDraw = function() {
 	//The pixel data is given in r,g,b,a form
 	// So to check the alpha value we must look at the n*4th pixel
 	for (var i = 0; i < pixels.length; i += 4) {
-		if (pixels[i+3] < threshold) {
+		if (pixels[i+3] < threshold/1.25) {
 			pixels[i+3] = 0;
 		}
 	}
@@ -120,7 +146,10 @@ var metaballDraw = function() {
 
 var init = function() {
 	createParticles(50);
-	render();
+	maskImage.onload = function() {
+		render();
+	};
+	
 
 };
 
