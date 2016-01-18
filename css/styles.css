@@ -1,0 +1,30 @@
+#container {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: #fff;
+}
+
+#canvas {
+	width: 500px;
+	height: 500px;
+	position: absolute;
+
+	/*alternative to translate*/
+/*	left: calc(50% - 250px);
+	top: calc(50% - 250px);*/
+
+
+	left: 50%;
+	top: 50%;
+	-webkit-transform: translate(-50%, -50%);
+	   -moz-transform: translate(-50%, -50%);
+	    -ms-transform: translate(-50%, -50%);
+	     -o-transform: translate(-50%, -50%);
+	        transform: translate(-50%, -50%);
+	background-color: #000;
+	border: 2px dashed black;
+
+}
